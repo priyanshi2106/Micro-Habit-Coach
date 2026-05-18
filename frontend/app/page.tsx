@@ -259,7 +259,7 @@ export default function LandingPage() {
             {/* left — label */}
             <div className="shrink-0 sm:w-40">
               <p className="text-xs font-semibold uppercase tracking-widest text-ink-subtle">
-                What's included
+                What&apos;s included
               </p>
             </div>
 
