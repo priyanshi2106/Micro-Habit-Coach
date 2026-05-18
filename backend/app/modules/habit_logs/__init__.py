@@ -1,0 +1,1 @@
+"""Habit completion logs domain."""

@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+__pycache__/
+*.py[cod]
+.Python
+.venv/
+venv/
+env/
+
+# Build / Next
+frontend/.next/
+frontend/out/
+frontend/build/
+*.tsbuildinfo
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Python
+*.egg-info/
+dist/
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Postgres (local volume bind if used)
+pgdata/
