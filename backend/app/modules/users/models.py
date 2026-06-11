@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Optional
 
-from sqlalchemy import DateTime, String, func
+from sqlalchemy import DateTime, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,6 +20,8 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(320), nullable=False, unique=True, index=True)
     timezone: Mapped[str] = mapped_column(String(64), nullable=False, default="UTC")
+    # bcrypt hash — never store plaintext. See app/core/security.py.
+    password_hash: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -31,3 +34,11 @@ class User(Base):
         "HabitSuggestion", back_populates="user"
     )
     habit_logs: Mapped[list[HabitLog]] = relationship("HabitLog", back_populates="user")
+    # One-to-one — None when the user has not connected a calendar.
+    calendar_connection: Mapped[Optional[CalendarConnection]] = relationship(
+        "CalendarConnection", back_populates="user", uselist=False
+    )
+    # One-to-one — None until the user explicitly saves notification preferences.
+    notification_preference: Mapped[Optional[NotificationPreference]] = relationship(
+        "NotificationPreference", back_populates="user", uselist=False
+    )

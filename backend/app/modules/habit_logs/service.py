@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -38,12 +38,18 @@ async def create_habit_log(
                 detail="Suggestion not found",
             )
 
+    # For done logs, ensure completed_at is always populated so pattern
+    # learning has a reliable timestamp to work with.
+    completed_at = payload.completed_at
+    if payload.status.value == "done" and completed_at is None:
+        completed_at = datetime.now(timezone.utc)
+
     log = HabitLog(
         user_id=user_id,
         habit_id=payload.habit_id,
         suggestion_id=payload.suggestion_id,
         status=payload.status.value,
-        completed_at=payload.completed_at,
+        completed_at=completed_at,
         scheduled_window_start=payload.scheduled_window_start,
         scheduled_window_end=payload.scheduled_window_end,
         calendar_date=payload.date,

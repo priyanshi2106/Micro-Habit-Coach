@@ -1,4 +1,4 @@
-import { getUserId } from "@/lib/utils/userId";
+import { getAccessToken } from "@/lib/store/auth";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -17,15 +17,15 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const userId = getUserId();
+  const token = getAccessToken();
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string> | undefined),
   };
 
-  if (userId) {
-    headers["X-User-Id"] = userId;
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });

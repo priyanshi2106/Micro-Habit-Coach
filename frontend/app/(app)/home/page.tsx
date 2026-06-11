@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { SuggestionCard } from "@/components/cards/SuggestionCard";
 import { getTodaySuggestion } from "@/lib/api/suggestions";
 import { createHabitLog } from "@/lib/api/logs";
@@ -96,6 +97,20 @@ export default function HomePage() {
 
       {!loading && !error && (
         <>
+          {/* Weekly insight teaser — shown once suggestion has loaded */}
+          <div className="mb-6">
+            <Link
+              href="/insights"
+              className="flex items-center justify-between rounded-xl border border-rim bg-white px-5 py-3.5 text-sm transition-colors hover:border-accent hover:bg-accent-light"
+            >
+              <span className="text-ink-muted">
+                <span className="font-medium text-ink">Weekly Insight</span>
+                {" "}— see how your week went
+              </span>
+              <span className="text-ink-subtle">→</span>
+            </Link>
+          </div>
+
           {/* Done or Skipped — resolved state replaces the card */}
           {resolved && suggestion && (
             <div className="rounded-xl border border-rim bg-white px-8 py-10 text-center">

@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { HabitForm } from "@/components/forms/HabitForm";
 import { ScheduleBlockForm } from "@/components/forms/ScheduleBlockForm";
-import { createUser } from "@/lib/api/users";
-import { setUserId } from "@/lib/utils/userId";
+import { GoalSuggestionPanel } from "@/components/onboarding/GoalSuggestionPanel";
+import { registerUser } from "@/lib/api/auth";
+import { setAccessToken } from "@/lib/store/auth";
 
 type Step = "profile" | "setup";
 
@@ -40,6 +42,7 @@ export default function OnboardingPage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const detectedTz =
     typeof window !== "undefined"
       ? Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -54,10 +57,14 @@ export default function OnboardingPage() {
   async function handleProfileSubmit(e: React.FormEvent) {
     e.preventDefault();
     setProfileError(null);
+    if (password.length < 8) {
+      setProfileError("Password must be at least 8 characters");
+      return;
+    }
     setSubmitting(true);
     try {
-      const user = await createUser({ name, email, timezone });
-      setUserId(user.id);
+      const { access_token } = await registerUser({ name, email, password, timezone });
+      setAccessToken(access_token);
       setStep("setup");
     } catch (err: unknown) {
       setProfileError(
@@ -92,13 +99,14 @@ export default function OnboardingPage() {
             Create your account
           </h1>
 
-          <form onSubmit={handleProfileSubmit} className="flex flex-col gap-5">
+          <form onSubmit={handleProfileSubmit} className="flex flex-col gap-5" autoComplete="off">
             <Input
               label="Your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="Alex"
+              autoComplete="name"
             />
             <Input
               label="Email"
@@ -107,6 +115,16 @@ export default function OnboardingPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="alex@example.com"
+              autoComplete="new-email"
+            />
+            <Input
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Min. 8 characters"
+              autoComplete="new-password"
             />
             <Select
               label="Timezone"
@@ -122,6 +140,12 @@ export default function OnboardingPage() {
                 Continue
               </Button>
             </div>
+            <p className="text-sm text-ink-muted">
+              Already have an account?{" "}
+              <Link href="/login" className="text-accent hover:underline underline-offset-2">
+                Log in
+              </Link>
+            </p>
           </form>
         </div>
       ) : (
@@ -158,6 +182,18 @@ export default function OnboardingPage() {
                 </span>
               )}
             </div>
+
+            {/* AI goal-first path */}
+            <GoalSuggestionPanel onHabitsSaved={(n) => setHabitsAdded((prev) => prev + n)} />
+
+            {/* Divider */}
+            <div className="my-6 flex items-center gap-3">
+              <div className="h-px flex-1 bg-rim" />
+              <span className="text-xs text-ink-subtle">or browse templates</span>
+              <div className="h-px flex-1 bg-rim" />
+            </div>
+
+            {/* Template + manual path — always visible */}
             <HabitForm onSuccess={() => setHabitsAdded((n) => n + 1)} />
           </section>
 

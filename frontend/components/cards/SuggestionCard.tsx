@@ -34,18 +34,25 @@ export function SuggestionCard({
     );
   }
 
-  const { habit, suggested_window_start, suggested_window_end, suggestion_reason } =
+  const { habit, suggested_window_start, suggested_window_end, suggestion_reason, source } =
     suggestion;
+
+  const isAdaptive = source === "adaptive_engine";
 
   return (
     <div className={[
       "rounded-xl border border-rim bg-white p-8 shadow-sm transition-opacity",
       snoozed && "opacity-60",
     ].filter(Boolean).join(" ")}>
-      <div className="mb-6">
+      <div className="mb-6 flex flex-wrap items-center gap-2">
         <span className="inline-block rounded-md bg-accent-light px-2.5 py-1 text-xs font-semibold uppercase tracking-widest text-accent">
           {habit.category}
         </span>
+        {isAdaptive && (
+          <span className="inline-flex items-center gap-1 rounded-md border border-rim bg-canvas px-2.5 py-1 text-xs text-ink-muted">
+            <span aria-hidden>✦</span> Based on your history
+          </span>
+        )}
       </div>
 
       <h2 className="text-3xl font-semibold tracking-tight text-ink">

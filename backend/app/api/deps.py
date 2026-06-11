@@ -8,24 +8,38 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import decode_access_token
 from app.modules.users.models import User
-
 
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 
 
-async def require_user_id(
-    x_user_id: Annotated[Optional[UUID], Header(alias="X-User-Id")] = None,
+async def require_bearer_token(
+    authorization: Annotated[Optional[str], Header()] = None,
 ) -> UUID:
-    if x_user_id is None:
+    """Extract and verify the JWT from the Authorization: Bearer <token> header.
+
+    Returns the user UUID encoded in the token.
+    Raises 401 if the header is missing, malformed, or the token is invalid/expired.
+    """
+    if authorization is None or not authorization.lower().startswith("bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing X-User-Id header",
+            detail="Missing or malformed Authorization header",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    return x_user_id
+    token = authorization[len("bearer "):]
+    user_id = decode_access_token(token)
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired access token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user_id
 
 
-UserId = Annotated[UUID, Depends(require_user_id)]
+UserId = Annotated[UUID, Depends(require_bearer_token)]
 
 
 async def require_user(
