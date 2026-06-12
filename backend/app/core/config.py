@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,6 +12,17 @@ class Settings(BaseSettings):
     )
 
     database_url: str = "postgresql+asyncpg://microhabit:microhabit@127.0.0.1:5432/microhabit"
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def fix_database_url(cls, v: str) -> str:
+        # Render (and many other hosts) provide postgres:// or postgresql:// URLs.
+        # SQLAlchemy async requires postgresql+asyncpg://.
+        if v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql+asyncpg://", 1)
+        if v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
     create_tables_on_startup: bool = True
 
     # Optional — when absent the AI endpoint falls back to the keyword engine.
