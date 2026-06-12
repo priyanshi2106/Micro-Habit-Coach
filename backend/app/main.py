@@ -18,11 +18,18 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Micro Habit Coach API", lifespan=lifespan)
 
-# Allow the Next.js dev server and any configured frontend origin.
-# Tighten this list before going to production.
+_settings = get_settings()
+_allowed_origins = [
+    "http://localhost:3000",
+    "https://micro-habit-coach-frontend.vercel.app",  # deployed frontend
+]
+# Also include FRONTEND_URL from env if it differs (e.g. custom domain later).
+if _settings.frontend_url and _settings.frontend_url not in _allowed_origins:
+    _allowed_origins.append(_settings.frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
